@@ -7,3 +7,12 @@ class Meal(db.Model):
     description = db.Column(db.String(80))
     datetime = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     on_diet = db.Column(db.Boolean())
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+            "datetime": self.datetime,
+            "on_diet": self.on_diet
+        }
