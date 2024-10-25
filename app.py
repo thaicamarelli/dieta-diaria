@@ -1,4 +1,4 @@
-from flask import Flask,request,jsonify
+from flask import Flask
 from models.user import User
 from database import db
 from login_manager import login_manager

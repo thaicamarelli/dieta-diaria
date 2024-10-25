@@ -25,8 +25,7 @@ def login():
         if user and bcrypt.checkpw(str.encode(password),str.encode(user.password)):
             
             login_user(user)
-            print(current_user.is_authenticated)
-            return jsonify({"message": "Autenticação realizada com sucesso"})
+            return jsonify({"message": "Autenticação realizada com sucesso"}),200
     
     return jsonify({"message": "Credenciais inválidas"}), 400
 
@@ -34,7 +33,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return jsonify({"message": "Logout realizado com sucesso!"})
+    return jsonify({"message": "Logout realizado com sucesso!"}),200
 
 @user.route('/user',methods=["POST"])
 def create_user():

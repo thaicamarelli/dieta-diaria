@@ -1,4 +1,5 @@
 from flask import Blueprint,request,jsonify
+import json
 from login_manager import login_manager
 from flask_login import login_required,current_user
 from models.user import User
@@ -7,18 +8,19 @@ from database import db
 
 meal = Blueprint('meal',__name__)
 
-@login_required
 @meal.route('/meal',methods=["POST"])
+@login_required
 def create_meal():
+    data = request.json
+    user_id = current_user.id 
+
+    name = data.get("name")
+    description = data.get("description")
+    datetime = data.get("datetime")
+    on_diet = data.get("on_diet")
+
     try:
-        data = request.json
-
-        name = data.get("name")
-        description = data.get("description")
-        datetime = data.get("datetime")
-        on_diet = data.get("on_diet")
-
-        new_meal = Meal(name=name,description=description,datetime=datetime,on_diet=on_diet)
+        new_meal = Meal(name=name,description=description,datetime=datetime,on_diet=on_diet,user_id=user_id)
         db.session.add(new_meal)
         db.session.commit()
 
@@ -26,11 +28,11 @@ def create_meal():
 
     except ValueError as error:
         return jsonify({"messsage": "Erro ao cadastrar refeição valor incorreto"}), 400
-    except Exception as error:
-        print(error)
+    except TypeError as error:
+        return jsonify({"Erro": str(error)}), 400
 
-@login_required
 @meal.route('/meal/<string:name>',methods=["PUT"])
+@login_required
 def update_meal(name):
     try:
         meal = Meal.query.filter_by(name=name).first()
@@ -53,14 +55,15 @@ def update_meal(name):
             db.session.commit()
             return jsonify({"message": meal.to_dict()}),200
         except Exception as error:
-            print(error)
+            db.session.rollback()
+            return jsonify({"message": "Erro ao atualizar refeição", "erro": str(error)}),500
     except ValueError as error:
         return jsonify({"messsage": "Erro ao atualizar refeição valor incorreto"}), 400
     except Exception as error:
         print(error)
 
-@login_required
 @meal.route('/meal/<string:name>',methods=["DELETE"])
+@login_required
 def delete_meal(name):
     meal = Meal.query.filter_by(name=name).first()
 
@@ -76,8 +79,8 @@ def delete_meal(name):
         db.session.rollback()
         return jsonify({"message": "Erro para deletar a refeição", "erro": str(error)}), 500
 
-@login_required
 @meal.route('/meal/<string:name>',methods=["GET"])
+@login_required
 def get_meal(name):
     meal = Meal.query.filter_by(name=name).first()
 
@@ -86,5 +89,14 @@ def get_meal(name):
     
     return jsonify({"message": meal.to_dict()}),200
 
+@meal.route('/meal',methods=["GET"])
+@login_required
+def get_all_meals():
+    meals = Meal.query.filter_by(user_id=current_user.id).all()
 
-# listar refeições de um usuario
+    if not meal:
+        return jsonify({"message": "Não existem refeições cadastradas para esse usuário"}), 404
+    
+    meals_list = [meal.to_dict() for meal in meals]
+    return jsonify({"message": meals_list}),200
+
