@@ -3,11 +3,9 @@ import bcrypt
 from database import db
 from login_manager import login_manager
 from models.user import User
-from flask_login import login_user,current_user,logout_user,login_required
+from flask_login import login_user,logout_user,login_required
 
 user = Blueprint('user',__name__)
-
-login_manager.login_view = 'login'
 
 @login_manager.user_loader
 def load_user(user_id):

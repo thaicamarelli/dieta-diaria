@@ -1,10 +1,8 @@
 from flask import Blueprint,request,jsonify
-import json
-from login_manager import login_manager
 from flask_login import login_required,current_user
-from models.user import User
 from models.meal import Meal
 from database import db
+from datetime import datetime
 
 meal = Blueprint('meal',__name__)
 
@@ -16,21 +14,25 @@ def create_meal():
 
     name = data.get("name")
     description = data.get("description")
-    datetime = data.get("datetime")
+    date_time = data.get("datetime")
     on_diet = data.get("on_diet")
 
     try:
-        new_meal = Meal(name=name,description=description,datetime=datetime,on_diet=on_diet,user_id=user_id)
+        date_time = datetime.fromisoformat(date_time)
+
+        new_meal = Meal(name=name,description=description,datetime=date_time,on_diet=on_diet,user_id=user_id)
         db.session.add(new_meal)
         db.session.commit()
 
         return jsonify({"message": "Refeição cadastrada com sucesso"}), 201    
 
     except ValueError as error:
-        return jsonify({"messsage": "Erro ao cadastrar refeição valor incorreto"}), 400
+        return jsonify({"messsage": str(error)}), 400
+    
     except TypeError as error:
         return jsonify({"Erro": str(error)}), 400
-
+    
+    
 @meal.route('/meal/<string:name>',methods=["PUT"])
 @login_required
 def update_meal(name):
@@ -47,20 +49,21 @@ def update_meal(name):
         if 'description' in data:
             meal.description = data['description']
         if 'datetime' in data:
-            meal.datetime = data['datetime']
+            date_time = datetime.fromisoformat(data['datetime'])
+            meal.datetime = date_time
         if 'on_diet' in data:
             meal.on_diet = data['on_diet']
 
-        try:
-            db.session.commit()
-            return jsonify({"message": meal.to_dict()}),200
-        except Exception as error:
-            db.session.rollback()
-            return jsonify({"message": "Erro ao atualizar refeição", "erro": str(error)}),500
+        db.session.commit()
+        return jsonify({"message": meal.to_dict()}),200
+            
     except ValueError as error:
-        return jsonify({"messsage": "Erro ao atualizar refeição valor incorreto"}), 400
+        db.session.rollback()
+        return jsonify({"messsage": str(error)}), 400
     except Exception as error:
-        print(error)
+        db.session.rollback()
+        return jsonify({"message": "Erro ao atualizar refeição", "erro": str(error)}),500
+
 
 @meal.route('/meal/<string:name>',methods=["DELETE"])
 @login_required

@@ -9,28 +9,22 @@ class Meal(db.Model):
     name = db.Column(db.String(80),nullable=False)
     description = db.Column(db.String(80))
     datetime = db.Column(db.DateTime, default=datetime.now(timezone.utc),nullable=False)
-    on_diet = db.Column(db.Boolean(),nullable=False)
-
+    on_diet = db.Column(db.Boolean,nullable=False)
     user_id = db.Column(db.Integer,db.ForeignKey('users.id'),nullable=False)
 
     user = relationship('User',back_populates='meal')
 
-    @validates('name')
-    def validate_name(self,value):
-        if not value or not isinstance(value, str) or len(value) < 1:
-            raise ValueError("Nome da refeição deve ser uma string não vazia.")
-        return value
-    
-    @validates('on_diet')
-    def validate_name(self,value):
-        if not value or not isinstance(value, bool):
-            raise ValueError("Campo on_diet deve ser booleano não vazio.")
-        return value
-    
-    @validates('datetime')
-    def validate_name(self,value):
-        if not value or not isinstance(value, datetime):
-            raise ValueError("Data e hora da refeição deve ser um datetime não vazio .")
+    @validates('name','datetime','on_diet')
+    def validate_fields(self,key,value):
+        if key == 'name':
+            if not value or not isinstance(value, str) or len(value) < 1:
+                raise ValueError("Nome da refeição deve ser uma string não vazia.")
+        elif key == 'on_diet':
+            if not isinstance(value, bool):
+                raise ValueError("Campo on_diet deve ser booleano não vazio.")
+        elif key == 'datetime':
+            if not value or not isinstance(value, datetime):
+                raise ValueError("Data e hora da refeição deve ser um datetime não vazio .")
         return value
 
     def to_dict(self):
