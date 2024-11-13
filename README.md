@@ -1,4 +1,5 @@
-# dieta-diaria
+# App de dieta-diaria
 
-# Criar refeição ok
-# Atualizar refeição ok
+App para uso pessoal, para controle de refeições diarias, podendo cadastrar diversas refeições, horario, descrição e se está presente na dieta ou não
+
+
