@@ -24,7 +24,7 @@ def create_meal():
         db.session.add(new_meal)
         db.session.commit()
 
-        return jsonify({"message": "Refeição cadastrada com sucesso"}), 201    
+        return jsonify({"message": "Refeição cadastrada com sucesso", "Refeição": meal.to_dict()}), 201    
 
     except ValueError as error:
         return jsonify({"messsage": str(error)}), 400
@@ -33,11 +33,11 @@ def create_meal():
         return jsonify({"Erro": str(error)}), 400
     
     
-@meal.route('/meal/<string:name>',methods=["PUT"])
+@meal.route('/meal/<int:id>',methods=["PUT"])
 @login_required
-def update_meal(name):
+def update_meal(id):
     try:
-        meal = Meal.query.filter_by(name=name).first()
+        meal = Meal.query.filter_by(id=id).first()
 
         if not meal:
             return jsonify({"message": "Refeição não encontrada"}), 404
@@ -65,10 +65,10 @@ def update_meal(name):
         return jsonify({"message": "Erro ao atualizar refeição", "erro": str(error)}),500
 
 
-@meal.route('/meal/<string:name>',methods=["DELETE"])
+@meal.route('/meal/<int:id>',methods=["DELETE"])
 @login_required
-def delete_meal(name):
-    meal = Meal.query.filter_by(name=name).first()
+def delete_meal(id):
+    meal = Meal.query.filter_by(id=id).first()
 
     if not meal:
         return jsonify({"message": "Refeição não encontrada"}), 404
@@ -82,10 +82,13 @@ def delete_meal(name):
         db.session.rollback()
         return jsonify({"message": "Erro para deletar a refeição", "erro": str(error)}), 500
 
-@meal.route('/meal/<string:name>',methods=["GET"])
+@meal.route('/meal/<int:id>',methods=["GET"])
 @login_required
-def get_meal(name):
-    meal = Meal.query.filter_by(name=name).first()
+def get_meal(id):
+    meal = Meal.query.filter_by(
+        id=id,
+        user_id=current_user.id
+        ).first()
 
     if not meal:
         return jsonify({"message": "Refeição não encontrada"}), 404
